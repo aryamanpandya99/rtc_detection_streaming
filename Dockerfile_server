@@ -1,0 +1,17 @@
+FROM python:3.10
+
+WORKDIR /app
+
+COPY requirements.txt /app/
+
+RUN apt-get update && apt-get install ffmpeg libsm6 libxext6  -y
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the rest of the application code into the container
+# TODO: adjust this to only include things needed for the server
+COPY . /app
+
+EXPOSE 8080
+
+CMD ["python", "server.py"]

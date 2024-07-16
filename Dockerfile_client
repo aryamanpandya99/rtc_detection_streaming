@@ -1,0 +1,29 @@
+FROM python:3.10
+
+WORKDIR /app
+
+COPY requirements.txt /app/
+
+RUN apt-get update && \
+    apt-get install -y \
+    ffmpeg \
+    libsm6 \
+    libxext6 \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    libxkbcommon-x11-0 \
+    xvfb && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the rest of the application code into the container
+# TODO: adjust this to only include things needed for the client
+COPY . /app
+
+EXPOSE 8080
+
+# format necessary to allow display to work
+ENV DISPLAY=:99
+CMD ["sh", "-c", "Xvfb :99 -screen 0 1024x768x16 & python client.py"]
