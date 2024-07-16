@@ -1,14 +1,23 @@
 """
+This module implements the client-side functionality for real-time object detection and
+communication using WebRTC.
 
+The client connects to a signaling server, sets up event handlers, and processes video 
+frames for object detection using a pre-trained YOLOv5 model. The detected coordinates
+are shared with the server for further processing.
+
+Author: Aryaman Pandya
 """
 
 import argparse
 import asyncio
 import ctypes
-import json
 import multiprocessing as mp
+from multiprocessing import freeze_support
 
 import numpy as np
+from PIL import Image
+import torch
 import cv2
 
 from aiortc import RTCPeerConnection
@@ -19,7 +28,12 @@ from rtc_signal_handlers import consume_signaling
 def face_detection(frame: np.ndarray) -> tuple:
     """
     """
-    # TODO: Implement face detection
+    model = torch.hub.load('ultralytics/yolov5', 'yolov5n', pretrained=True)
+    if torch.cuda.is_available():
+        model.to("cuda")
+    
+    results = model(frame)
+    print(results)
     return (-1, -1)
 
 
@@ -50,9 +64,10 @@ async def run_client(pc, signaling, queue, coordinates):
     @pc.on("track")
     def on_track(track):
         if track.kind == "video":
-            print(f"video: {type(track)}")
             asyncio.ensure_future(display_frames(track, queue))
             # asyncio.ensure_future(print_coords(coordinates))
+        else: 
+            raise ValueError(f"Unsupported track kind: {track.kind}")
 
     await consume_signaling(pc, signaling)
 
@@ -71,8 +86,8 @@ async def display_frames(track, queue):
     while True:
         frame = await track.recv()
         img = frame.to_ndarray(format="bgr24")
-        cv2.imshow("Received Video", img)
         queue.put(img)
+        cv2.imshow("Received Video", img)
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break
 
@@ -127,12 +142,14 @@ def main():
     signaling = create_signaling(args)
     pc = RTCPeerConnection()
 
+
+    freeze_support()
     loop = asyncio.get_event_loop()
     q = mp.Queue()
     shared_coordinates = mp.Value(Coordinates)  # Shared value for x, y coordinates
-    # p = mp.Process(target=update_detection, args=(q, shared_coordinates))
+    p = mp.Process(target=update_detection, args=(q, shared_coordinates))
 
-    # p.start()
+    p.start()
 
     try:
         loop.run_until_complete(run_client(pc, signaling, q, shared_coordinates))
