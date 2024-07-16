@@ -55,7 +55,7 @@ def face_detection(frame: np.ndarray) -> np.ndarray:
     return frame
 
 
-async def run_client(pc, signaling, frame_queue, detection_queue):
+async def run_client(pc, signaling, frame_queue):
     """
     Connects to the signaling server, sets up event handlers, and consumes signaling.
 
@@ -92,12 +92,16 @@ async def display_frames(track, frame_queue):
         None
     """
     while True:
-        frame = await track.recv()
-        img = frame.to_ndarray(format="bgr24")
-        frame_queue.put(img)
-        cv2.imshow("Received Video", img)
-        if cv2.waitKey(1) & 0xFF == ord("q"):
-            break
+        try:
+            frame = await track.recv()
+            img = frame.to_ndarray(format="bgr24")
+            frame_queue.put(img)
+            cv2.imshow("Received Video", img)
+            if cv2.waitKey(1) & 0xFF == ord("q"):
+                break
+        except MediaStreamError:
+            print("MediaStreamError: The media stream was interrupted or is unavailable.")
+            continue
 
 
 def update_detection(frame_queue: mp.Queue, detection_queue: mp.Queue):
@@ -169,7 +173,7 @@ def main():
 
     try:
         loop.run_until_complete(asyncio.gather(
-            run_client(pc, signaling, frame_queue, detection_queue),
+            run_client(pc, signaling, frame_queue),
             display_detections(detection_queue)
         ))
     except KeyboardInterrupt:
