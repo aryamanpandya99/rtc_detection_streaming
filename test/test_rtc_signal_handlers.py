@@ -4,15 +4,20 @@ Author: Aryaman Pandya
 Assignment for Nimble Robotics 
 """
 
+from unittest.mock import AsyncMock, MagicMock
+
 import pytest
-from unittest.mock import MagicMock, AsyncMock
-from rtc_signal_handlers import consume_signaling, handle_signaling
-from aiortc import RTCSessionDescription, RTCIceCandidate
+from aiortc import RTCIceCandidate, RTCSessionDescription
 from aiortc.contrib.signaling import BYE
+
+from rtc_signal_handlers import handle_signaling
 
 
 @pytest.mark.asyncio
 async def test_handle_signaling_offer():
+    """
+    Test the handle_signaling function with an offer message.
+    """
     pc = AsyncMock()
     signaling = AsyncMock()
 
@@ -30,6 +35,9 @@ async def test_handle_signaling_offer():
 
 @pytest.mark.asyncio
 async def test_handle_signaling_answer():
+    """
+    Test the handle_signaling function with an answer message.
+    """
     pc = AsyncMock()
     signaling = AsyncMock()
 
@@ -47,6 +55,9 @@ async def test_handle_signaling_answer():
 
 @pytest.mark.asyncio
 async def test_handle_signaling_ice_candidate():
+    """
+    Test the handle_signaling function with an ICE candidate message.
+    """
     pc = AsyncMock()
     signaling = AsyncMock()
 
@@ -61,6 +72,9 @@ async def test_handle_signaling_ice_candidate():
 
 @pytest.mark.asyncio
 async def test_handle_signaling_bye():
+    """
+    Test the handle_signaling function with a BYE message.
+    """
     pc = AsyncMock()
     signaling = AsyncMock()
 
@@ -70,6 +84,7 @@ async def test_handle_signaling_bye():
 
     signaling.receive.assert_called_once()
     assert result == -1
+
 
 if __name__ == "__main__":
     pytest.main()

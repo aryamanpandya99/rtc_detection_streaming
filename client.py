@@ -12,18 +12,18 @@ Author: Aryaman Pandya
 import argparse
 import asyncio
 import multiprocessing as mp
-from multiprocessing import freeze_support
 
+import cv2
 import numpy as np
 import torch
-import cv2
-
+from aiortc.mediastreams import MediaStreamError
 from aiortc import RTCPeerConnection
 from aiortc.contrib.signaling import add_signaling_arguments, create_signaling
 
 from rtc_signal_handlers import consume_signaling
 
-model = torch.hub.load('ultralytics/yolov5', 'yolov5n', pretrained=True)
+model = torch.hub.load("ultralytics/yolov5", "yolov5n", pretrained=True)
+
 
 def face_detection(frame: np.ndarray) -> np.ndarray:
     """
@@ -36,21 +36,29 @@ def face_detection(frame: np.ndarray) -> np.ndarray:
     np.ndarray: The frame with detections drawn.
     """
     global model
-    
+
     if torch.cuda.is_available():
         model.to("cuda")
-    
+
     results = model(frame)
-    
+
     for detection in results.xyxy[0]:  # xyxy format for bounding boxes
         x1, y1, x2, y2, conf, cls = detection[:6]
         label = f"{results.names[int(cls)]} {conf:.2f}"
-        
+
         # Draw the bounding box
         cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
-        
+
         # Put the label text above the bounding box
-        cv2.putText(frame, label, (int(x1), int(y1) - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+        cv2.putText(
+            frame,
+            label,
+            (int(x1), int(y1) - 10),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.5,
+            (0, 255, 0),
+            2,
+        )
 
     return frame
 
@@ -74,7 +82,7 @@ async def run_client(pc, signaling, frame_queue):
     def on_track(track):
         if track.kind == "video":
             asyncio.ensure_future(display_frames(track, frame_queue))
-        else: 
+        else:
             raise ValueError(f"Unsupported track kind: {track.kind}")
 
     await consume_signaling(pc, signaling)
@@ -100,7 +108,9 @@ async def display_frames(track, frame_queue):
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
         except MediaStreamError:
-            print("MediaStreamError: The media stream was interrupted or is unavailable.")
+            print(
+                "MediaStreamError: The media stream was interrupted or is unavailable."
+            )
             continue
 
 
@@ -150,7 +160,7 @@ def main():
 
     Returns:
         None
-    
+
     Raises:
         RuntimeError: If the frame cannot be read from the webcam.
         KeyboardInterrupt: If the program is interrupted by the user.
@@ -162,7 +172,6 @@ def main():
     signaling = create_signaling(args)
     pc = RTCPeerConnection()
 
-    freeze_support()
     frame_queue = mp.Queue()
     detection_queue = mp.Queue()
 
@@ -172,12 +181,14 @@ def main():
     loop = asyncio.get_event_loop()
 
     try:
-        loop.run_until_complete(asyncio.gather(
-            run_client(pc, signaling, frame_queue),
-            display_detections(detection_queue)
-        ))
+        loop.run_until_complete(
+            asyncio.gather(
+                run_client(pc, signaling, frame_queue),
+                display_detections(detection_queue),
+            )
+        )
     except KeyboardInterrupt:
-        pass
+        print("Keyboard interrupt")
     finally:
         loop.run_until_complete(pc.close())
         loop.run_until_complete(signaling.close())

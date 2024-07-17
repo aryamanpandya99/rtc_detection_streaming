@@ -1,7 +1,25 @@
-from aiortc import RTCSessionDescription, RTCIceCandidate
+"""
+This module contains the signaling handlers for the RTC connection.
+"""
+
+from aiortc import RTCIceCandidate, RTCSessionDescription
 from aiortc.contrib.signaling import BYE
 
+
 async def handle_signaling(signaling, pc):
+    """
+    Handle signaling messages and handle them accordingly.
+
+    Args:
+        signaling (Signaling): The signaling object used for communication.
+        pc (RTCPeerConnection): The RTCPeerConnection object.
+
+    Returns:
+        None
+
+    Raises:
+        None
+    """
     obj = await signaling.receive()
 
     if isinstance(obj, RTCSessionDescription):
@@ -17,6 +35,7 @@ async def handle_signaling(signaling, pc):
     elif obj is BYE:
         print("Exiting")
         return -1
+
 
 async def consume_signaling(pc, signaling, limit=None):
     """
@@ -37,8 +56,8 @@ async def consume_signaling(pc, signaling, limit=None):
             resp = await handle_signaling(signaling, pc)
             if resp == -1:
                 break
-    else: 
-        for i in range(limit):
+    else:
+        for _ in range(limit):
             resp = await handle_signaling(signaling, pc)
             if resp == -1:
                 break
