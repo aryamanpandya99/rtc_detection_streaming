@@ -22,7 +22,7 @@ from aiortc.contrib.signaling import add_signaling_arguments, create_signaling
 
 from rtc_signal_handlers import consume_signaling
 
-model = torch.hub.load("ultralytics/yolov5", "yolov5n", pretrained=True)
+MODEL = torch.hub.load("ultralytics/yolov5", "yolov5n", pretrained=True)
 
 
 def face_detection(frame: np.ndarray) -> np.ndarray:
@@ -35,12 +35,11 @@ def face_detection(frame: np.ndarray) -> np.ndarray:
     Returns:
     np.ndarray: The frame with detections drawn.
     """
-    global model
 
     if torch.cuda.is_available():
-        model.to("cuda")
+        MODEL.to("cuda")
 
-    results = model(frame)
+    results = MODEL(frame)
 
     for detection in results.xyxy[0]:  # xyxy format for bounding boxes
         x1, y1, x2, y2, conf, cls = detection[:6]
