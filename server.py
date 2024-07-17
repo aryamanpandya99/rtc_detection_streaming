@@ -1,16 +1,15 @@
 """
 TODO: Update here once changed things around
 """
+
 import argparse
 import asyncio
-import json
-import platform
+
 from aiortc import RTCPeerConnection
-from aiortc.contrib.media import MediaPlayer, MediaRelay
 from aiortc.contrib.signaling import add_signaling_arguments, create_signaling
+
 from rtc_signal_handlers import consume_signaling
 from video_track import WebCamTrack
-
 
 
 async def run_server(pc, signaling):
