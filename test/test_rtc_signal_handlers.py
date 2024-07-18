@@ -3,14 +3,13 @@ Unit tests for server.py
 Author: Aryaman Pandya
 Assignment for Nimble Robotics 
 """
-
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from aiortc import RTCIceCandidate, RTCSessionDescription
 from aiortc.contrib.signaling import BYE
 
-from rtc_signal_handlers import handle_signaling
+from ..rtc_signal_handlers import handle_signaling
 
 
 @pytest.mark.asyncio

@@ -16,9 +16,9 @@ import multiprocessing as mp
 import cv2
 import numpy as np
 import torch
-from aiortc.mediastreams import MediaStreamError
 from aiortc import RTCPeerConnection
 from aiortc.contrib.signaling import add_signaling_arguments, create_signaling
+from aiortc.mediastreams import MediaStreamError
 
 from rtc_signal_handlers import consume_signaling
 
