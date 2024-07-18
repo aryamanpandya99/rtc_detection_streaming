@@ -2,6 +2,7 @@
 This module provides a video track for the webcam, enabling
 video streaming to the peer connection.
 """
+
 import cv2
 from aiortc import VideoStreamTrack
 from av import VideoFrame
