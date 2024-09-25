@@ -1,7 +1,6 @@
 """
 Unit tests for server.py
 Author: Aryaman Pandya
-Assignment for Nimble Robotics 
 """
 from unittest.mock import AsyncMock, MagicMock
 
